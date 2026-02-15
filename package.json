@@ -1,0 +1,25 @@
+{
+  "name": "matrixapiallurereport",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:debug": "npx playwright test --debug",
+    "test:headed": "npx playwright test --headed",
+    "allure:generate": "npx allure generate allure-results --clean -o allure-report",
+    "allure:open": "npx allure open allure-report",
+    "allure:report": "npm run test && npm run allure:generate && npm run allure:open",
+    "playwright:install": "npx playwright install"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "allure-commandline": "^2.36.0",
+    "allure-playwright": "^2.15.1",
+    "dotenv": "^17.2.4"
+  },
+  "dependencies": {
+    "axios": "^1.13.5",
+    "winston": "^3.19.0"
+  }
+}

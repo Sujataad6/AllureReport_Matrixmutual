@@ -1,0 +1,9 @@
+{
+  "timeout": 30000,
+  "slow": 1000,
+  "require": ["dotenv/config"],
+  "recursive": true,
+  "exit": true,
+  "colors": true,
+  "bail": false
+}
