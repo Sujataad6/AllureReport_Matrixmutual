@@ -1,19 +1,15 @@
-import { defineConfig } from "@playwright/test";
-import dotenv from "dotenv";
-
-dotenv.config({ path: "D:/officeProject/matrixAPIAllureReport/.env" });
+import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  testDir: "./tests",
+  testDir: './tests',
+  // Ensure the reporter is defined exactly like this
   reporter: [
-  ['list'], 
-  ['allure-playwright', { outputFolder: 'allure-results' }]
-],
-
+    ['list'], 
+    ['allure-playwright', { outputFolder: 'allure-results' }]
+  ],
   use: {
-    baseURL: process.env.BASE_URL,
-    extraHTTPHeaders: {
-      "Content-Type": "application/json"
-    }
-  }
+    // This helps Allure link traces and screenshots
+    trace: 'on',
+    screenshot: 'on',
+  },
 });

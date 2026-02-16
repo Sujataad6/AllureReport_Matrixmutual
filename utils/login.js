@@ -1,44 +1,46 @@
-import { request, expect } from '@playwright/test';
+import { logger } from './logger.js';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-export async function loginUser(testInfo) {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  if (!process.env.LOGIN_API_URL) {
-    throw new Error('LOGIN_API_URL is missing in .env');
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+const { BASE_URL, LOGIN_BOID, LOGIN_PASSWORD } = process.env;
+
+/**
+ * @param {import('@playwright/test').APIRequestContext} apiRequest
+ */
+export async function clientLogin(apiRequest) {
+  if (!LOGIN_BOID || !LOGIN_PASSWORD) {
+    throw new Error('Vault credentials missing in .env');
   }
 
-  if (!process.env.LOGIN_BOID) {
-    throw new Error('LOGIN_BOID is missing in .env');
-  }
-
-  if (!process.env.LOGIN_PASSWORD) {
-    throw new Error('LOGIN_PASSWORD is missing in .env');
-  }
-
-  const apiContext = await request.newContext();
-
-  const response = await apiContext.post(process.env.LOGIN_API_URL, {
+  const response = await apiRequest.post(`${BASE_URL}/login`, {
     data: {
-      boid: process.env.LOGIN_BOID,
-      password: process.env.LOGIN_PASSWORD,
-    },
+      boid: LOGIN_BOID,
+      password: LOGIN_PASSWORD
+    }
   });
-
-  expect(response.status(), 'Login API failed').toBe(200);
 
   const body = await response.json();
 
-  const token = body?.accessToken;
-
-  if (testInfo) {
-    await testInfo.attach('Login API Response', {
-      body: JSON.stringify(body, null, 2),
-      contentType: 'application/json'
-    });
+  if (response.status() !== 200) {
+    logger.error(`Login failed. Status: ${response.status()}, Response: ${JSON.stringify(body)}`);
+    throw new Error(`Login failed with status: ${response.status()}`);
   }
 
-  if (!token) {
-    throw new Error('Access token not found in response');
+  if (!body.token || !body.refreshToken) {
+    logger.error(`Login response missing token/refreshToken: ${JSON.stringify(body)}`);
+    throw new Error('Login response missing token or refreshToken');
   }
 
-  return token;
+  process.env.ACCESS_TOKEN = body.token;
+  process.env.REFRESH_TOKEN = body.refreshToken;
+
+  logger.info(`Login successful: ${JSON.stringify(body)}`);
+
+  return body;
 }

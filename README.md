@@ -1,32 +1,43 @@
 # Matrix API Automation with Allure Reporting
 
-This project provides API automation testing for the Matrix API with comprehensive Allure reporting.
+Comprehensive API automation testing framework for the Matrix API using Playwright with detailed Allure reporting and test visualization.
 
 ## Features
 
-- ✅ API Login automation with reusable auth helper
-- ✅ Allure reporting with detailed test steps and attachments
-- ✅ Configurable environment settings
-- ✅ Comprehensive error handling
-- ✅ Token management for authenticated requests
+- ✅ **Playwright API Testing** - Modern API testing framework with powerful request capabilities
+- ✅ **Allure Reporting** - Beautiful, detailed test reports with steps, attachments, and metrics
+- ✅ **Authentication Testing** - Reusable login utilities with token management
+- ✅ **SIP Registration Tests** - Khalti payment integration testing
+- ✅ **Environment Configuration** - Flexible configuration for different environments
+- ✅ **Comprehensive Logging** - Winston-based logging for debugging
+- ✅ **Error Handling** - Robust error handling and recovery mechanisms
+- ✅ **Screenshots & Traces** - Automatic capture of traces and screenshots for failed tests
 
 ## Project Structure
 
 ```
 matrixAPIAllureReport/
 ├── config/
-│   ├── config.js          # Main configuration file
-│   └── env.example        # Environment variables template
-├── utils/
-│   └── auth.js            # Authentication helper utility
+│   ├── config.js              # Main configuration file
+│   └── env.example            # Environment variables template
 ├── tests/
-│   └── auth.spec.js       # Login authentication tests
-├── .mocharc.json          # Mocha configuration
-├── package.json           # Project dependencies and scripts
-└── README.md             # This file
+│   ├── Auth/
+│   │   └── clientLogin.spec.js    # Client authentication tests
+│   └── SIP Register/
+│       └── Khalti/
+│           └── KhaltiInitiate.spec.js  # Khalti payment tests
+├── utils/
+│   ├── login.js               # Client login utility
+│   └── logger.js              # Winston logger configuration
+├── playwright.config.js       # Playwright configuration
+├── package.json               # Dependencies and scripts
+├── playwright-report/         # Generated Playwright HTML reports
+├── allure-results/            # Allure test results (JSON)
+├── allure-report/             # Generated Allure HTML reports
+└── README.md                  # This file
 ```
 
-## Setup Instructions
+## Installation & Setup
 
 ### 1. Install Dependencies
 
@@ -34,252 +45,321 @@ matrixAPIAllureReport/
 npm install
 ```
 
-### 2. Configure Environment Variables
+This installs all required dependencies:
+- **@playwright/test** - API testing framework
+- **allure-playwright** & **allure-commandline** - Report generation
+- **dotenv** - Environment variable management
+- **winston** - Logging framework
+- **axios** - HTTP client
 
-Copy the environment template and update with your actual values:
+### 2. Install Playwright Browsers (Optional)
+
+For browser-based testing:
+
+```bash
+npm run playwright:install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the project root based on the template:
 
 ```bash
 cp config/env.example .env
 ```
 
-Edit the `.env` file with your actual configuration:
+Edit `.env` with your actual configuration:
 
 ```env
 # API Configuration
 BASE_URL=https://your-api-domain.com
 
-# Login Credentials (replace with actual values)
-LOGIN_BOID=your_actual_boid
-LOGIN_PASSWORD=your_actual_password
-
-# Allure Configuration
-ALLURE_RESULTS_DIR=allure-results
-ALLURE_REPORT_DIR=allure-report
+# Login Credentials
+LOGIN_BOID=your_boid_number
+LOGIN_PASSWORD=your_password
 ```
 
-### 3. Install Allure CLI (Global)
+## Available Commands
+
+### Testing
 
 ```bash
-npm install -g allure-commandline
+# Run all tests
+npm run test
+
+# Run tests with browser visible (headed mode)
+npm run test:headed
+
+# Run tests in debug mode with Playwright Inspector
+npm run test:debug
+
+# Install Playwright browsers
+npm run playwright:install
+```
+
+### Allure Reporting
+
+```bash
+# Generate Allure report from results
+npm run allure:generate
+
+# Open Allure report in browser
+npm run allure:open
+
+# Run tests AND generate and open Allure report
+npm run allure:report
 ```
 
 ## Running Tests
 
-### Prerequisites
+### Quick Start
 
-Before running tests, make sure:
-
-1. **Update your `.env` file** with the correct API URL and credentials
-2. **API Server is running** and accessible at the configured BASE_URL
-3. **Credentials are valid** in the environment variables
-
-### Run Tests with Allure Reporting
-
-```bash
-npm run test:with-allure
-```
-
-This will:
-- Run all tests with allure reporting enabled
-- Generate allure results in `allure-results/` directory
-- Generate HTML report in `allure-report/` directory
-
-### Open Allure Report in Browser
-
-```bash
-npm run allure:open
-```
-
-### Run Tests Without Allure (Simple Output)
-
-```bash
-npm run test:simple
-```
-
-### Run All Tests and View Report
+To run all tests and view the Allure report:
 
 ```bash
 npm run allure:report
 ```
 
-This runs tests, generates report, and opens it in your browser.
+This command will:
+1. Execute all tests in the `tests/` directory
+2. Collect results in `allure-results/`
+3. Generate an interactive HTML report in `allure-report/`
+4. Open the report in your default browser
 
-### Development Mode
+### View Test Results
 
+After running tests, check results in two ways:
+
+**Playwright Report:**
 ```bash
-npm run test:watch
+npx playwright show-report
 ```
 
-Runs tests in watch mode for development.
-
-## Current Test Status
-
-The framework is fully set up and ready to use. When you run the tests:
-
-- **2 tests will pass**: These are the error handling tests (invalid credentials and network errors)
-- **3 tests will fail**: These require a running API server with valid credentials
-
-Once you:
-1. Update the `BASE_URL` in `.env` to point to your actual API
-2. Update the `LOGIN_BOID` and `LOGIN_PASSWORD` with valid credentials
-3. Ensure your API server is running
-
-All tests should pass and you'll get comprehensive Allure reports.
-
-### Watch Mode (for development)
-
+**Allure Report:**
 ```bash
-npm run test:watch
+npm run allure:open
 ```
 
-## Using the Authentication Helper
+## Test Suites
 
-The `authHelper` utility provides methods for authentication and making authenticated requests:
+### 1. Authentication Tests (`tests/Auth/clientLogin.spec.js`)
+
+Tests client login functionality and token management:
+
+- **Login API should return tokens** - Verifies successful login returns both access and refresh tokens
+- Validates token structure and presence
+- Includes login response attachment to Allure report
+- Environment properties capture for API configuration
+
+**Key Features:**
+- Uses `clientLogin()` utility from `utils/login.js`
+- Attaches login response JSON to test report
+- Validates token acquisition through Allure steps
+- Captures environment variables (BASE_URL, BOID)
+
+### 2. SIP Registration Tests (`tests/SIP Register/Khalti/KhaltiInitiate.spec.js`)
+
+Tests SIP registration with Khalti payment integration.
+
+**Extend these tests with:**
+- Payment initiation validation
+- Transaction status verification
+- Error handling scenarios
+- Payment confirmation workflows
+
+## Configuration
+
+### Environment Variables (`.env`)
+
+```env
+BASE_URL=http://localhost:3000           # API base URL
+LOGIN_BOID=1111111111                    # Client BOID for authentication
+LOGIN_PASSWORD=password123               # Client password
+```
+
+### Playwright Configuration (`playwright.config.js`)
 
 ```javascript
-const authHelper = require('./utils/auth');
-
-// Login
-const loginResult = await authHelper.login();
-if (loginResult.success) {
-  console.log('Logged in successfully!');
+{
+  testDir: './tests',
+  reporter: [
+    ['list'],                    // Console output
+    ['allure-playwright', {      // Allure reporting
+      outputFolder: 'allure-results'
+    }]
+  ],
+  use: {
+    trace: 'on',                 // Record execution traces
+    screenshot: 'on',            // Capture screenshots
+  }
 }
-
-// Make authenticated requests
-const response = await authHelper.makeAuthenticatedRequest('GET', '/api/some-endpoint');
-
-// Get auth headers for custom requests
-const headers = authHelper.getAuthHeader();
-
-// Check login status
-if (authHelper.isLoggedIn()) {
-  // User is logged in
-}
-
-// Logout
-authHelper.logout();
 ```
 
-## Test Structure
+## Using the Login Utility
 
-### Authentication Tests (`tests/auth.spec.js`)
-
-The test suite includes comprehensive login testing:
-
-1. **Successful Login**: Verifies login with valid credentials
-2. **Failed Login**: Tests behavior with invalid credentials
-3. **Network Error Handling**: Ensures graceful handling of connection issues
-4. **Token Management**: Validates token storage and retrieval
-5. **Logout Functionality**: Confirms proper token cleanup
-
-### Allure Report Features
-
-- **Epic**: Authentication
-- **Features**: User Login, Token Management
-- **Stories**: Successful Login, Failed Login, Network Error Handling, Token Persistence, Logout Functionality
-- **Steps**: Detailed step-by-step test execution
-- **Parameters**: Test parameters like BOID and Base URL
-- **Descriptions**: HTML-formatted test descriptions
-
-## Configuration Options
-
-### Main Configuration (`config/config.js`)
-
-- `baseUrl`: API base URL
-- `loginCredentials`: BOID and password for login
-- `allure`: Allure reporting directories
-- `timeout`: Request timeout in milliseconds
-- `retries`: Number of test retries
-
-### Environment Variables
-
-- `BASE_URL`: Override default API URL
-- `LOGIN_BOID`: User BOID for authentication
-- `LOGIN_PASSWORD`: User password for authentication
-- `ALLURE_RESULTS_DIR`: Directory for Allure results
-- `ALLURE_REPORT_DIR`: Directory for generated Allure reports
-
-## API Endpoint Details
-
-### Login Endpoint
-
-- **Method**: POST
-- **URL**: `{base_url}/login`
-- **Body**:
-  ```json
-  {
-    "boid": "string",
-    "password": "string"
-  }
-  ```
-- **Success Response**:
-  ```json
-  {
-    "token": "jwt_access_token",
-    "refreshToken": "jwt_refresh_token"
-  }
-  ```
-
-## Extending the Framework
-
-### Adding New API Tests
-
-1. Create new test files in the `tests/` directory
-2. Use the `authHelper` for authentication
-3. Follow the Allure reporting pattern with epic, feature, story, and steps
-
-Example:
+The `clientLogin()` function provides authenticated API access:
 
 ```javascript
-const authHelper = require('../utils/auth');
+import { test, expect, request } from '@playwright/test';
+import { clientLogin } from '../../utils/login.js';
 
-describe('User Profile Tests', function() {
-  before(async function() {
-    // Login before running profile tests
-    const loginResult = await authHelper.login();
-    expect(loginResult.success).to.be.true;
-  });
-
-  it('should get user profile', async function() {
-    allure.epic('User Management');
-    allure.feature('Profile');
-    allure.story('Get Profile');
-
-    const response = await authHelper.makeAuthenticatedRequest('GET', '/api/profile');
-    expect(response.success).to.be.true;
-    // Add more assertions...
+test('API test with authentication', async () => {
+  const apiRequest = await request.newContext();
+  const loginResponse = await clientLogin(apiRequest);
+  
+  expect(loginResponse.token).toBeDefined();
+  expect(loginResponse.refreshToken).toBeDefined();
+  
+  // Use token for further requests
+  const authenticatedRequest = await apiRequest.get('/protected-endpoint', {
+    headers: { Authorization: `Bearer ${loginResponse.token}` }
   });
 });
 ```
 
-### Adding New Utilities
+## Allure Report Features
 
-Add utility functions to the `utils/` directory following the same pattern as `auth.js`.
+The Allure reports include:
+
+- **Test Timeline** - Visual representation of test execution
+- **Metrics** - Pass/fail statistics, duration, flakiness
+- **Steps** - Detailed breakdown of test execution steps
+- **Attachments** - JSON responses, logs, traces
+- **Parameters** - Test parameters and environment configuration
+- **History** - Track test results across test runs
+- **Graphs** - Pass/fail trends, duration trends
+
+### Adding Allure Steps
+
+```javascript
+import { allure } from 'allure-playwright';
+
+test('example test', async () => {
+  await allure.step('Step 1: Perform action', async () => {
+    // Test code
+  });
+
+  await allure.step('Step 2: Verify result', async () => {
+    // Assertion code
+  });
+
+  // Attach data to report
+  allure.attachment('Response Data', JSON.stringify(data, null, 2), 'application/json');
+});
+```
+
+## Logging
+
+The project uses Winston logger for detailed logging. Configure in `utils/logger.js`:
+
+```javascript
+import { logger } from './logger.js';
+
+logger.info('Test started');
+logger.error('Test failed');
+logger.debug('Debug info');
+```
+
+Logs are written to the `logs/` directory.
+
+## Adding New Tests
+
+1. Create a new test file in the appropriate `tests/` subdirectory:
+
+```javascript
+import { test, expect } from '@playwright/test';
+import { clientLogin } from '../../utils/login.js';
+import { allure } from 'allure-playwright';
+
+test.describe('My Feature Tests', () => {
+  
+  test('Should do something', async () => {
+    const apiRequest = await request.newContext();
+    const loginResponse = await clientLogin(apiRequest);
+
+    await allure.step('Perform action', async () => {
+      const response = await apiRequest.get('/api/endpoint', {
+        headers: { Authorization: `Bearer ${loginResponse.token}` }
+      });
+      
+      allure.attachment('Response', JSON.stringify(response), 'application/json');
+      expect(response.status()).toBe(200);
+    });
+  });
+});
+```
+
+2. Run tests and view in Allure report:
+
+```bash
+npm run allure:report
+```
 
 ## Troubleshooting
 
-### Common Issues
+| Issue | Solution |
+|-------|----------|
+| **Tests fail with "Vault credentials missing"** | Check `.env` file exists and has `LOGIN_BOID` and `LOGIN_PASSWORD` |
+| **"BASE_URL is not accessible"** | Verify API server is running and URL in `.env` is correct |
+| **Allure report not generating** | Run `npm install -g allure-commandline` to install Allure CLI globally |
+| **Port already in use** | Change port in configuration or kill existing process |
+| **Login test fails** | Verify credentials are correct and API endpoint is `/login` |
+| **Trace files not captured** | Ensure `trace: 'on'` in `playwright.config.js` |
 
-1. **Tests failing with network errors**: Check your `BASE_URL` in `.env`
-2. **Login failing**: Verify `LOGIN_BOID` and `LOGIN_PASSWORD` credentials
-3. **Allure report not generating**: Ensure Allure CLI is installed globally
-4. **Token errors**: Make sure to login before making authenticated requests
+## Development Workflow
 
-### Debug Mode
+1. **Create test file** in `tests/` with `.spec.js` extension
+2. **Write test** with Playwright API and Allure reporting
+3. **Run test** with `npm run test`
+4. **Check report** with `npm run allure:open`
+5. **Fix issues** and iterate
 
-Run tests with detailed output:
+## Best Practices
 
-```bash
-DEBUG=* npm run test:simple
+- ✅ Use descriptive test names
+- ✅ Add Allure steps for test visibility
+- ✅ Attach responses and logs to reports
+- ✅ Use `clientLogin()` for authenticated tests
+- ✅ Handle errors gracefully
+- ✅ Keep credentials in `.env`, never commit them
+- ✅ Use environment variables for different environments
+- ✅ Document complex test logic with comments
+
+## Git Configuration
+
+Add to `.gitignore` (if not already present):
+
+```
+node_modules/
+.env
+allure-results/
+allure-report/
+playwright-report/
+test-results/
+logs/
+*.log
 ```
 
 ## Contributing
 
-1. Follow the existing code structure
-2. Add comprehensive Allure reporting to all tests
-3. Update this README for any new features
-4. Ensure all tests pass before committing
+1. Create a new branch for your feature
+2. Write tests with comprehensive Allure reporting
+3. Ensure all tests pass: `npm run test`
+4. Generate report: `npm run allure:report`
+5. Commit and create a pull request
 
-## License
+## Useful Resources
 
-ISC
+- [Playwright Documentation](https://playwright.dev/)
+- [Playwright API Testing](https://playwright.dev/docs/api-testing)
+- [Allure Playwright](https://github.com/allure-framework/allure-playwright)
+- [Allure Documentation](https://docs.qameta.io/allure/)
+- [Winston Logger](https://github.com/winstonjs/winston)
+
+## Support
+
+For issues or questions:
+1. Check the Troubleshooting section
+2. Review test examples in `tests/` directory
+3. Check Allure report for detailed failure information
+4. Enable debug mode: `npm run test:debug`

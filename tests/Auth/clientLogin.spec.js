@@ -1,49 +1,29 @@
-import { test, expect } from '@playwright/test';
-import { loginUser } from '../../utils/login.js';
+import { test, expect, request } from '@playwright/test';
+import { clientLogin } from '../../utils/login.js';
 import { allure } from 'allure-playwright';
+import fs from 'fs';
 
-test.describe('API Authentication', () => {
+test.describe('Client Login API', () => {
 
-  test('API-LOGIN-001: Verify client can login successfully', async ({}, testInfo) => {
+  test.beforeAll(() => {
+    fs.writeFileSync('allure-results/environment.properties', 
+      `Base URL=${process.env.BASE_URL}\nBOID=${process.env.LOGIN_BOID}`
+    );
+  });
 
-    // ================= ALLURE STRUCTURE =================
+  test('Login API should return tokens', async () => {
+    const apiRequest = await request.newContext();
 
-    await allure.parentSuite('API Automation');
-    await allure.suite('Authentication Module');
-    await allure.subSuite('Client Login');
+    const loginResponse = await clientLogin(apiRequest);
 
-    await allure.epic('User Management');
-    await allure.feature('Authentication');
-    await allure.story('Client Login with valid credentials');
-
-    await allure.severity('critical');
-    await allure.owner('Sujata Adhikari');
-    await allure.tag('API');
-    await allure.tag('Smoke');
-
-    let token;
-
-    // ================= TEST STEPS =================
-
-    await test.step('Given valid credentials exist', async () => {
-      expect(process.env.LOGIN_BOID, 'LOGIN_BOID is missing').toBeTruthy();
-      expect(process.env.LOGIN_PASSWORD, 'LOGIN_PASSWORD is missing').toBeTruthy();
+    await allure.step('Attach Login Response', () => {
+      allure.attachment('Login Response', JSON.stringify(loginResponse, null, 2), 'application/json');
     });
 
-    await test.step('When login API is called', async () => {
-      token = await loginUser(testInfo);
+    await allure.step('Verify Tokens', () => {
+      expect(loginResponse.token).toBeDefined();
+      expect(loginResponse.refreshToken).toBeDefined();
     });
-
-    await test.step('Then access token should be returned', async () => {
-      expect(token).toBeTruthy();
-      expect(typeof token).toBe('string');
-
-      await testInfo.attach('Token Info', {
-        body: `Token received successfully. Length: ${token.length}`,
-        contentType: 'text/plain'
-      });
-    });
-
   });
 
 });

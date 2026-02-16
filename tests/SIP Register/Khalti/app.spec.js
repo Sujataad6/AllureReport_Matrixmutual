@@ -6,6 +6,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+/**
+ * Generates current date in YYYY-MM-DD format
+ */
 const getFormattedToday = () => new Date().toISOString().split('T')[0];
 
 test.describe('Khalti Payment Suite - SIP Support', () => {
@@ -22,22 +25,24 @@ test.describe('Khalti Payment Suite - SIP Support', () => {
     await test.step('Authentication and Token Retrieval', async () => {
       const loginData = await clientLogin(apiRequest);
       token = loginData.token;
+      
       allure.attachment("Login Data", JSON.stringify(loginData, null, 2), "application/json");
-      expect(token).toBeTruthy();
+      expect(token, 'Access token should be valid').toBeTruthy();
       logger.info('Access token obtained successfully');
     });
 
+    // Parse payload from ENV and dynamically inject today's date
     const basePayload = JSON.parse(process.env.KHALTI_SIP_PAYLOAD);
     const requestBody = {
       ...basePayload,
       sip: {
         ...basePayload.sip,
-        startDate: getFormattedToday()
+        startDate: getFormattedToday() // Overwrites ENV date with today's date
       }
     };
 
     await test.step('Initiate Khalti SIP Payment API', async () => {
-      allure.attachment("Request Body", JSON.stringify(requestBody, null, 2), "application/json");
+      allure.attachment("Request Body (Sent to API)", JSON.stringify(requestBody, null, 2), "application/json");
 
       const response = await apiRequest.post(
         `${process.env.BASE_URL}/payments/khalti/initiate`,
@@ -53,7 +58,7 @@ test.describe('Khalti Payment Suite - SIP Support', () => {
       let body;
       try {
         body = await response.json();
-        allure.attachment("Response Body", JSON.stringify(body, null, 2), "application/json");
+        allure.attachment("Response Body (Received from API)", JSON.stringify(body, null, 2), "application/json");
       } catch {
         const text = await response.text();
         allure.attachment("Error Response Text", text, "text/plain");
